@@ -1,9 +1,14 @@
 package game.edenium.commands.command;
 
+import game.edenium.commands.annotation.Suggest;
+import game.edenium.commands.annotation.Suggestions;
 import game.edenium.commands.context.CommandContext;
 import game.edenium.commands.descriptor.CommandDescriptor;
 import game.edenium.commands.descriptor.CommandMethod;
+import game.edenium.commands.resolver.ArgumentResolver;
 import game.edenium.commands.resolver.ResolverRegistry;
+import game.edenium.commands.suggestion.SuggestionProvider;
+import game.edenium.commands.suggestion.SuggestionRegistry;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,21 +19,23 @@ import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class BukkitCommandAdapter implements CommandExecutor, TabCompleter {
 
     private final CommandRegistry registry;
     private final ResolverRegistry resolvers;
+    private final SuggestionRegistry suggestions;
     private final CommandDispatcher dispatcher;
 
     public BukkitCommandAdapter(
             CommandRegistry registry,
             ResolverRegistry resolvers,
+            SuggestionRegistry suggestions,
             CommandDispatcher dispatcher
     ) {
         this.registry = registry;
         this.resolvers = resolvers;
+        this.suggestions = suggestions;
         this.dispatcher = dispatcher;
     }
 
@@ -39,16 +46,13 @@ public final class BukkitCommandAdapter implements CommandExecutor, TabCompleter
             @NotNull String label,
             @NotNull String[] args
     ) {
-
         dispatcher.dispatch(
                 sender,
                 command,
                 label,
                 args
         );
-
         return true;
-
     }
 
     @Override
@@ -58,9 +62,7 @@ public final class BukkitCommandAdapter implements CommandExecutor, TabCompleter
             @NotNull String alias,
             @NotNull String[] args
     ) {
-
         CommandDescriptor descriptor = registry.find(alias);
-
         if (descriptor == null) {
             return Collections.emptyList();
         }
@@ -68,23 +70,18 @@ public final class BukkitCommandAdapter implements CommandExecutor, TabCompleter
         CommandMethod method = descriptor.find(args);
 
         if (method == null) {
-            return descriptor.suggestSubcommands(args);
+            return filterByInput(descriptor.suggestSubcommands(args), args);
+        }
+
+        if (method.hasPermission() && !sender.hasPermission(method.permission())) {
+            return Collections.emptyList();
         }
 
         String[] remaining = method.isDefault()
                 ? args
-                : Arrays.copyOfRange(
-                args,
-                method.path().length,
-                args.length
-        );
+                : Arrays.copyOfRange(args, method.path().length, args.length);
 
-        ParameterContext parameterContext =
-                dispatcher.resolveParameter(
-                        method,
-                        remaining
-                );
-
+        ParameterContext parameterContext = dispatcher.resolveParameter(method, remaining);
         if (parameterContext == null) {
             return Collections.emptyList();
         }
@@ -100,23 +97,62 @@ public final class BukkitCommandAdapter implements CommandExecutor, TabCompleter
                 method
         );
 
-        String current = remaining.length == 0
-                ? ""
-                : remaining[remaining.length - 1];
+        List<String> rawSuggestions = resolveSuggestions(context, parameter);
 
-        return resolvers.suggestions(
-                        context,
-                        parameter
-                ).stream()
-                .filter(s -> s.regionMatches(
-                        true,
-                        0,
-                        current,
-                        0,
-                        current.length()
-                ))
-                .collect(Collectors.toList());
-
+        return filterByInput(rawSuggestions, remaining);
     }
 
+    private List<String> resolveSuggestions(CommandContext context, Parameter parameter) {
+        String suggestionKey = extractSuggestionKey(parameter);
+        if (suggestionKey != null) {
+            SuggestionProvider provider = suggestions.find(suggestionKey);
+            if (provider != null) {
+                List<String> provided = provider.provide(context, parameter);
+                if (provided != null && !provided.isEmpty()) {
+                    return provided;
+                }
+            }
+        }
+
+        ArgumentResolver<?> resolver = resolvers.find(parameter);
+        if (resolver != null) {
+            List<String> resolved = resolver.suggestions(context, parameter);
+            if (resolved != null && !resolved.isEmpty()) {
+                return resolved;
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    private String extractSuggestionKey(Parameter parameter) {
+        if (parameter.isAnnotationPresent(Suggest.class)) {
+            return parameter.getAnnotation(Suggest.class).value();
+        }
+        if (parameter.isAnnotationPresent(Suggestions.class)) {
+            return parameter.getAnnotation(Suggestions.class).value();
+        }
+        return null;
+    }
+
+    private List<String> filterByInput(List<String> rawSuggestions, String[] args) {
+        if (rawSuggestions == null || rawSuggestions.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String currentInput = args.length == 0 ? "" : args[args.length - 1];
+        if (currentInput.isBlank()) {
+            return rawSuggestions;
+        }
+
+        return rawSuggestions.stream()
+                .filter(suggestion -> suggestion.regionMatches(
+                        true,
+                        0,
+                        currentInput,
+                        0,
+                        currentInput.length()
+                ))
+                .toList();
+    }
 }

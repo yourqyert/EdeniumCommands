@@ -7,6 +7,7 @@ import game.edenium.commands.resolver.ArgumentResolver;
 import game.edenium.commands.resolver.ResolverRegistry;
 import game.edenium.commands.resolver.defaults.*;
 import game.edenium.commands.scanner.ReflectionScanner;
+import game.edenium.commands.suggestion.SuggestionRegistry;
 import game.edenium.commands.validator.ValidatorRegistry;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,6 +24,7 @@ public final class CommandManager {
     private final ValidatorRegistry validatorRegistry;
     private final CommandDispatcher dispatcher;
     private final BukkitCommandAdapter adapter;
+    private final SuggestionRegistry suggestionRegistry;
 
     private ExceptionHandler exceptionHandler;
 
@@ -46,13 +48,14 @@ public final class CommandManager {
                 exceptionHandler
         );
 
+        this.suggestionRegistry = new SuggestionRegistry();
+
         this.adapter = new BukkitCommandAdapter(
                 commandRegistry,
                 resolverRegistry,
+                suggestionRegistry,
                 dispatcher
         );
-
-
 
     }
 
@@ -82,6 +85,7 @@ public final class CommandManager {
         resolverRegistry.register(new BooleanResolver());
         resolverRegistry.register(new PlayerResolver());
         resolverRegistry.register(new UUIDResolver());
+        resolverRegistry.register(new EnumResolver());
 
     }
 

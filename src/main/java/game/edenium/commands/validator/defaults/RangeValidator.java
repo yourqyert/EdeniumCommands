@@ -28,7 +28,7 @@ public class RangeValidator implements ArgumentValidator {
         long min = parameter.getAnnotation(Range.class).min();
         long max = parameter.getAnnotation(Range.class).max();
 
-        if (!(number.longValue() < min || number.longValue() > max)) {
+        if (number.longValue() < min || number.longValue() > max) {
             throw new ValidationException(
                     "Value must be in range between " + min + " and " + max
             );

@@ -23,7 +23,7 @@ public final class PlayerResolver implements ArgumentResolver<Player> {
             String input
     ) {
 
-        Player player = Bukkit.getPlayerExact(input);
+        Player player = Bukkit.getPlayer(input);
 
         if (player == null) {
             throw new CommandException("Player '" + input + "' not found.");
