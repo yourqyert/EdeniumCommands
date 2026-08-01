@@ -1,30 +1,33 @@
 package game.edenium.commands.suggestion;
 
-import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class SuggestionRegistry {
 
-    private final List<SuggestionResolver> resolvers =
-            new ArrayList<>();
+    private final Map<String, SuggestionProvider> providers = new HashMap<>();
 
-    public void register(SuggestionResolver resolver) {
-        resolvers.add(resolver);
-    }
-
-    public SuggestionResolver find(Parameter parameter) {
-
-        for (SuggestionResolver resolver : resolvers) {
-
-            if (resolver.supports(parameter)) {
-                return resolver;
-            }
-
+    public void register(String key, SuggestionProvider provider) {
+        if (key == null || provider == null) {
+            throw new IllegalArgumentException("Key and provider cannot be null.");
         }
-
-        return null;
-
+        providers.put(key.toLowerCase(), provider);
     }
 
+    public SuggestionProvider find(String key) {
+        if (key == null) {
+            return null;
+        }
+        return providers.get(key.toLowerCase());
+    }
+
+    public void unregister(String key) {
+        if (key != null) {
+            providers.remove(key.toLowerCase());
+        }
+    }
+
+    public void clear() {
+        providers.clear();
+    }
 }
