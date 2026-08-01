@@ -70,7 +70,7 @@ public final class BukkitCommandAdapter implements CommandExecutor, TabCompleter
         CommandMethod method = descriptor.find(args);
 
         if (method == null) {
-            return filterByInput(descriptor.suggestSubcommands(args), args);
+            return filterByInput(descriptor.suggestSubcommands(sender, args), args);
         }
 
         if (method.hasPermission() && !sender.hasPermission(method.permission())) {
