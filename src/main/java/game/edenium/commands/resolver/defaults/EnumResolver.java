@@ -51,7 +51,7 @@ public final class EnumResolver implements ArgumentResolver<Enum> {
                 (Class<? extends Enum>) parameter.getType();
 
         return Arrays.stream(type.getEnumConstants())
-                .map(Enum::name)
+                .map(constant -> constant.name().toLowerCase())
                 .collect(Collectors.toList());
 
     }

@@ -1,7 +1,7 @@
 package game.edenium.commands.command;
 
-import game.edenium.commands.annotation.Suggest;
-import game.edenium.commands.annotation.Suggestions;
+import game.edenium.commands.annotation.suggestions.Suggest;
+import game.edenium.commands.annotation.suggestions.Suggestions;
 import game.edenium.commands.context.CommandContext;
 import game.edenium.commands.descriptor.CommandDescriptor;
 import game.edenium.commands.descriptor.CommandMethod;

@@ -1,4 +1,4 @@
-package game.edenium.commands.annotation;
+package game.edenium.commands.annotation.suggestions;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

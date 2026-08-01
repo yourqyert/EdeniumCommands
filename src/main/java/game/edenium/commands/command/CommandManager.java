@@ -76,6 +76,7 @@ public final class CommandManager {
         resolverRegistry.register(new EnumResolver());
         resolverRegistry.register(new PlayerResolver());
         resolverRegistry.register(new UUIDResolver());
+        resolverRegistry.register(new LocationResolver());
     }
 
     public void registerResolver(ArgumentResolver<?> resolver) {
