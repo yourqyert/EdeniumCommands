@@ -2,7 +2,9 @@ package game.edenium.commands.resolver.defaults;
 
 import game.edenium.commands.context.CommandContext;
 import game.edenium.commands.exception.CommandException;
+import game.edenium.commands.localization.MessageKey;
 import game.edenium.commands.resolver.ArgumentResolver;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 import java.lang.reflect.Parameter;
 import java.util.List;
@@ -39,7 +41,8 @@ public final class BooleanResolver implements ArgumentResolver<Boolean> {
         if (FALSE.contains(value))
             return false;
 
-        throw new CommandException("'" + input + "' is not a valid boolean.");
+        throw new CommandException(MessageKey.RESOLVER_BOOLEAN_NOT_VALID,
+                Placeholder.unparsed("input", input));
     }
 
     @Override

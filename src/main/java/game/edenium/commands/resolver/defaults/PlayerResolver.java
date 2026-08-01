@@ -2,7 +2,9 @@ package game.edenium.commands.resolver.defaults;
 
 import game.edenium.commands.context.CommandContext;
 import game.edenium.commands.exception.CommandException;
+import game.edenium.commands.localization.MessageKey;
 import game.edenium.commands.resolver.ArgumentResolver;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -26,7 +28,8 @@ public final class PlayerResolver implements ArgumentResolver<Player> {
         Player player = Bukkit.getPlayer(input);
 
         if (player == null) {
-            throw new CommandException("Player '" + input + "' not found.");
+            throw new CommandException(MessageKey.RESOLVER_PLAYER_NOT_FOUND,
+                    Placeholder.unparsed("input", input));
         }
 
         return player;

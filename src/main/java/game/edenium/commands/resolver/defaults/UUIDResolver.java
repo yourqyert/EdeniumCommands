@@ -2,7 +2,9 @@ package game.edenium.commands.resolver.defaults;
 
 import game.edenium.commands.context.CommandContext;
 import game.edenium.commands.exception.CommandException;
+import game.edenium.commands.localization.MessageKey;
 import game.edenium.commands.resolver.ArgumentResolver;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 import java.lang.reflect.Parameter;
 import java.util.Collections;
@@ -26,9 +28,8 @@ public final class UUIDResolver implements ArgumentResolver<UUID> {
         try {
             return UUID.fromString(input);
         } catch (IllegalArgumentException exception) {
-            throw new CommandException(
-                    "'" + input + "' is not a valid UUID."
-            );
+            throw new CommandException(MessageKey.RESOLVER_UUID_NOT_VALID,
+                    Placeholder.unparsed("input", input));
         }
 
     }

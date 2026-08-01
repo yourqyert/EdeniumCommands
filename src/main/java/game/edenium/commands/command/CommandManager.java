@@ -3,6 +3,8 @@ package game.edenium.commands.command;
 import game.edenium.commands.descriptor.CommandDescriptor;
 import game.edenium.commands.exception.DefaultExceptionHandler;
 import game.edenium.commands.exception.ExceptionHandler;
+import game.edenium.commands.localization.LocalizationManager;
+import game.edenium.commands.localization.adapters.YamlLocalizationAdapter;
 import game.edenium.commands.resolver.ArgumentResolver;
 import game.edenium.commands.resolver.ResolverRegistry;
 import game.edenium.commands.resolver.defaults.*;
@@ -13,6 +15,7 @@ import game.edenium.commands.validator.ValidatorRegistry;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.Objects;
 
 public final class CommandManager {
@@ -26,6 +29,7 @@ public final class CommandManager {
     private final CommandDispatcher dispatcher;
     private final BukkitCommandAdapter adapter;
     private ExceptionHandler exceptionHandler;
+    private LocalizationManager localizationManager;
 
     public CommandManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -35,9 +39,11 @@ public final class CommandManager {
         this.validatorRegistry = new ValidatorRegistry();
         this.suggestionRegistry = new SuggestionRegistry();
 
+        this.localizationManager = new LocalizationManager();
+
         registerDefaultResolvers();
 
-        this.exceptionHandler = new DefaultExceptionHandler();
+        this.exceptionHandler = new DefaultExceptionHandler(localizationManager);
         this.dispatcher = new CommandDispatcher(
                 commandRegistry,
                 resolverRegistry,
@@ -51,6 +57,9 @@ public final class CommandManager {
                 suggestionRegistry,
                 dispatcher
         );
+
+        File defaultLangFile = new File(plugin.getDataFolder(), "commands_messages.yml");
+        this.localizationManager.init(defaultLangFile, new YamlLocalizationAdapter());
     }
 
     public void register(Object command) {

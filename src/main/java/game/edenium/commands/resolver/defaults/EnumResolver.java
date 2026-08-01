@@ -2,7 +2,9 @@ package game.edenium.commands.resolver.defaults;
 
 import game.edenium.commands.context.CommandContext;
 import game.edenium.commands.exception.CommandException;
+import game.edenium.commands.localization.MessageKey;
 import game.edenium.commands.resolver.ArgumentResolver;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
@@ -36,7 +38,9 @@ public final class EnumResolver implements ArgumentResolver<Enum> {
         }
 
         throw new CommandException(
-                "Unknown " + type.getSimpleName() + ": " + input
+                MessageKey.RESOLVER_ENUM_UNKNOWN,
+                Placeholder.unparsed("type", type.getSimpleName()),
+                Placeholder.unparsed("input", input)
         );
 
     }

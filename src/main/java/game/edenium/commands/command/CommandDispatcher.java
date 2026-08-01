@@ -20,7 +20,6 @@ public final class CommandDispatcher {
     private final CommandRegistry commandRegistry;
     private final ResolverRegistry resolverRegistry;
     private final ValidatorRegistry validatorRegistry;
-
     private ExceptionHandler exceptionHandler;
 
     public CommandDispatcher(
@@ -29,12 +28,10 @@ public final class CommandDispatcher {
             ValidatorRegistry validatorRegistry,
             ExceptionHandler exceptionHandler
     ) {
-
         this.commandRegistry = commandRegistry;
         this.resolverRegistry = resolverRegistry;
         this.validatorRegistry = validatorRegistry;
         this.exceptionHandler = exceptionHandler;
-
     }
 
     public void dispatch(
@@ -43,24 +40,19 @@ public final class CommandDispatcher {
             String label,
             String[] args
     ) {
-
         CommandDescriptor descriptor = commandRegistry.find(label);
-
         if (descriptor == null) {
             return;
         }
 
         CommandMethod method = descriptor.find(args);
-
         if (method == null) {
-
             exceptionHandler.handle(
+                    null,
                     sender,
                     new UnknownSubcommandException()
             );
-
             return;
-
         }
 
         String[] remaining = method.isDefault()
@@ -81,44 +73,33 @@ public final class CommandDispatcher {
         );
 
         try {
-
             execute(context);
-
         } catch (Throwable throwable) {
-
             exceptionHandler.handle(
+                    context,
                     sender,
                     throwable
             );
-
         }
-
     }
 
     private void execute(CommandContext context) throws Throwable {
-
         CommandMethod method = context.method();
 
         if (method.hasPermission()
                 && !context.sender().hasPermission(method.permission())) {
-
             throw new NoPermissionException(
                     method.permission()
             );
-
         }
 
         Object[] arguments = resolveArguments(context);
-
         method.handle().invokeWithArguments(arguments);
-
     }
+
     private Object[] resolveArguments(CommandContext context) throws Exception {
-
         Parameter[] parameters = context.method().parameters();
-
         Object[] resolved = new Object[parameters.length];
-
         int argumentIndex = 0;
 
         for (int parameterIndex = 0;
@@ -128,14 +109,11 @@ public final class CommandDispatcher {
             Parameter parameter = parameters[parameterIndex];
 
             if (CommandSender.class.isAssignableFrom(parameter.getType())) {
-
                 resolved[parameterIndex] = context.sender();
                 continue;
-
             }
 
             ArgumentResolver<?> resolver = resolverRegistry.find(parameter);
-
             if (resolver == null) {
                 throw new ResolverNotFoundException(
                         parameter.getType()
@@ -143,11 +121,8 @@ public final class CommandDispatcher {
             }
 
             if (parameter.isAnnotationPresent(Greedy.class)) {
-
                 String value = "";
-
                 if (argumentIndex < context.arguments().length) {
-
                     value = String.join(
                             " ",
                             Arrays.copyOfRange(
@@ -156,29 +131,22 @@ public final class CommandDispatcher {
                                     context.arguments().length
                             )
                     );
-
                 }
-
                 Object resolvedValue = resolver.resolve(
                         context,
                         parameter,
                         value
                 );
-
                 validatorRegistry.validate(
                         context,
                         parameter,
                         resolvedValue
                 );
-
                 resolved[parameterIndex] = resolvedValue;
-
                 break;
-
             }
 
             if (argumentIndex >= context.arguments().length) {
-
                 Optional optional =
                         parameter.getAnnotation(Optional.class);
 
@@ -187,29 +155,21 @@ public final class CommandDispatcher {
                 }
 
                 if (optional.value().isBlank()) {
-
                     resolved[parameterIndex] = null;
-
                 } else {
-
                     Object resolvedValue = resolver.resolve(
                             context,
                             parameter,
                             optional.value()
                     );
-
                     validatorRegistry.validate(
                             context,
                             parameter,
                             resolvedValue
                     );
-
                     resolved[parameterIndex] = resolvedValue;
-
                 }
-
                 continue;
-
             }
 
             Object resolvedValue = resolver.resolve(
@@ -225,14 +185,12 @@ public final class CommandDispatcher {
             );
 
             resolved[parameterIndex] = resolvedValue;
-
             argumentIndex++;
-
         }
 
         return resolved;
-
     }
+
     public void setExceptionHandler(ExceptionHandler exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
@@ -241,7 +199,6 @@ public final class CommandDispatcher {
             CommandMethod method,
             String[] arguments
     ) {
-
         Parameter[] parameters = Arrays.stream(method.parameters())
                 .filter(parameter ->
                         !CommandSender.class.isAssignableFrom(
@@ -255,7 +212,6 @@ public final class CommandDispatcher {
         }
 
         int index = Math.max(0, arguments.length - 1);
-
         if (index < parameters.length) {
             return new ParameterContext(
                     parameters[index],
@@ -264,7 +220,6 @@ public final class CommandDispatcher {
         }
 
         Parameter last = parameters[parameters.length - 1];
-
         if (last.isAnnotationPresent(Greedy.class)) {
             return new ParameterContext(
                     last,
@@ -273,7 +228,5 @@ public final class CommandDispatcher {
         }
 
         return null;
-
     }
-
 }

@@ -1,11 +1,15 @@
 package game.edenium.commands.exception;
 
+import game.edenium.commands.localization.MessageKey;
+
 public final class NoPermissionException extends CommandException {
 
     private final String permission;
 
     public NoPermissionException(String permission) {
-        super("You don't have permission.");
+        super(
+                MessageKey.NO_PERMISSION
+        );
         this.permission = permission;
     }
 

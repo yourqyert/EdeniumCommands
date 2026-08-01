@@ -2,7 +2,9 @@ package game.edenium.commands.resolver.defaults;
 
 import game.edenium.commands.context.CommandContext;
 import game.edenium.commands.exception.CommandException;
+import game.edenium.commands.localization.MessageKey;
 import game.edenium.commands.resolver.ArgumentResolver;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -30,7 +32,7 @@ public final class LocationResolver implements ArgumentResolver<Location> {
         try {
             if (parts.length == 3) {
                 if (!(context.sender() instanceof Player player)) {
-                    throw new CommandException("Консоль должна указывать мир! Используйте формат: world x y z");
+                    throw new CommandException(MessageKey.RESOLVER_LOCATION_CONSOLE_USE_WORLD);
                 }
 
                 double x = Double.parseDouble(parts[0]);
@@ -42,7 +44,8 @@ public final class LocationResolver implements ArgumentResolver<Location> {
             } else if (parts.length == 4) {
                 World world = Bukkit.getWorld(parts[0]);
                 if (world == null) {
-                    throw new CommandException("Мир '" + parts[0] + "' не найден.");
+                    throw new CommandException(MessageKey.RESOLVER_LOCATION_WORLD_NOT_FOUND,
+                            Placeholder.unparsed("world", parts[0]));
                 }
 
                 double x = Double.parseDouble(parts[1]);
@@ -52,10 +55,12 @@ public final class LocationResolver implements ArgumentResolver<Location> {
                 return new Location(world, x, y, z);
 
             } else {
-                throw new CommandException("Неверный формат локации. Используйте 'x y z' или 'world x y z'");
+                throw new CommandException(MessageKey.RESOLVER_LOCATION_NOT_VALID);
             }
         } catch (NumberFormatException exception) {
-            throw new CommandException("Координаты '" + input + "' должны быть числами.");
+            throw new CommandException(MessageKey.RESOLVER_LOCATION_COORDS_NOT_NUMBER,
+                    Placeholder.unparsed("input", input));
+            //throw new CommandException("Координаты '" + input + "' должны быть числами.");
         }
     }
 

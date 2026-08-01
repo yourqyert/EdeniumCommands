@@ -67,39 +67,32 @@ public final class BukkitCommandAdapter implements CommandExecutor, TabCompleter
             return Collections.emptyList();
         }
 
+        List<String> rawSuggestions = new java.util.ArrayList<>();
+
+        rawSuggestions.addAll(descriptor.suggestSubcommands(sender, args));
+
         CommandMethod method = descriptor.find(args);
 
-        if (method == null) {
-            return filterByInput(descriptor.suggestSubcommands(sender, args), args);
+        if (method != null && (!method.hasPermission() || sender.hasPermission(method.permission()))) {
+            String[] remaining = method.isDefault()
+                    ? args
+                    : Arrays.copyOfRange(args, method.path().length, args.length);
+
+            ParameterContext parameterContext = dispatcher.resolveParameter(method, remaining);
+            if (parameterContext != null) {
+                CommandContext context = new CommandContext(
+                        sender,
+                        command,
+                        alias,
+                        remaining,
+                        descriptor,
+                        method
+                );
+                rawSuggestions.addAll(resolveSuggestions(context, parameterContext.parameter()));
+            }
         }
 
-        if (method.hasPermission() && !sender.hasPermission(method.permission())) {
-            return Collections.emptyList();
-        }
-
-        String[] remaining = method.isDefault()
-                ? args
-                : Arrays.copyOfRange(args, method.path().length, args.length);
-
-        ParameterContext parameterContext = dispatcher.resolveParameter(method, remaining);
-        if (parameterContext == null) {
-            return Collections.emptyList();
-        }
-
-        Parameter parameter = parameterContext.parameter();
-
-        CommandContext context = new CommandContext(
-                sender,
-                command,
-                alias,
-                remaining,
-                descriptor,
-                method
-        );
-
-        List<String> rawSuggestions = resolveSuggestions(context, parameter);
-
-        return filterByInput(rawSuggestions, remaining);
+        return filterByInput(rawSuggestions, args);
     }
 
     private List<String> resolveSuggestions(CommandContext context, Parameter parameter) {
