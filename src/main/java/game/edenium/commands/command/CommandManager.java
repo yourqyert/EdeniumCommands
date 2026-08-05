@@ -38,7 +38,6 @@ public final class CommandManager {
         this.resolverRegistry = new ResolverRegistry();
         this.validatorRegistry = new ValidatorRegistry();
         this.suggestionRegistry = new SuggestionRegistry();
-
         this.localizationManager = new LocalizationManager();
 
         registerDefaultResolvers();
@@ -103,6 +102,10 @@ public final class CommandManager {
     public void setExceptionHandler(ExceptionHandler handler) {
         this.exceptionHandler = handler;
         dispatcher.setExceptionHandler(handler);
+    }
+
+    public LocalizationManager localizationManager() {
+        return localizationManager;
     }
 
     public ReflectionScanner scanner() {
